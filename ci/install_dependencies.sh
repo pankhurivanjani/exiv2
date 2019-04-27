@@ -49,7 +49,24 @@ case "$distro_id" in
         # enable copr for gtest
         curl https://copr.fedorainfracloud.org/coprs/defolos/devel/repo/epel-7/defolos-devel-epel-7.repo > /etc/yum.repos.d/_copr_defolos-devel.repo
         yum clean all
-        yum -y install gcc-c++ clang cmake3 make ccache expat-devel zlib-devel libssh-devel libcurl-devel gtest-devel which python36 dos2unix
+        yum install -y centos-release-scl
+        yum -y install devtoolset-3-gcc-c++ devtoolset-3-gcc-c++ devtoolset-3-binutils clang cmake3 make ccache \
+            expat-devel zlib-devel libssh-devel libcurl-devel gtest-devel which python36 dos2unix
+        echo source /opt/rh/devtoolset-3/enable >> ~/.bash_profile
+        _clang_bin=/usr/bin/clang
+        _clangxx_bin=/usr/bin/clang++
+        mv ${_clang_bin} ${_clang_bin}.old
+        mv ${_clangxx_bin} ${_clangxx_bin}.old
+        cat <<EOF > ${_clang_bin}
+#!/bin/bash
+${_clang_bin}.old --gcc-toolchain=/opt/rh/devtoolset-3/root/ \$@
+EOF
+        cat <<EOF > ${_clangxx_bin}
+#!/bin/bash
+${_clangxx_bin}.old --gcc-toolchain=/opt/rh/devtoolset-3/root/ \$@
+EOF
+        chmod +x ${_clang_bin}
+        chmod +x ${_clangxx_bin}
         # symlink up to date versions of python & cmake to 'default' names
         if [ ! -e /usr/bin/python3 ]; then
             ln -s /usr/bin/python36 /usr/bin/python3
